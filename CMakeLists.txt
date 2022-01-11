@@ -1,0 +1,4 @@
+SET(SOURCE ./source/)
+SET(TARGET ${SOURCE}tetris.c )
+INCLUDE_DIRECTORIES(include)
+ADD_EXECUTABLE(out ${TARGET})

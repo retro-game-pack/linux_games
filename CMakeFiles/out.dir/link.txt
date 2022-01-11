@@ -1,0 +1,1 @@
+/usr/bin/cc   -rdynamic CMakeFiles/out.dir/source/tetris.o  -o out 

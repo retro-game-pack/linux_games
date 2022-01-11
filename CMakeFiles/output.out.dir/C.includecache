@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ubuntu/dev/test_projects/cmake_project/projects/game_1/source/tetris.c
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+time.h
+-
+ansi_color.h
+/home/ubuntu/dev/test_projects/cmake_project/projects/game_1/source/ansi_color.h
+
+include/ansi_color.h
+
