@@ -1,3 +1,0 @@
-/home/ubuntu/dev/test_projects/cmake_project/projects/game_1/CMakeFiles/rebuild_cache.dir
-/home/ubuntu/dev/test_projects/cmake_project/projects/game_1/CMakeFiles/out.dir
-/home/ubuntu/dev/test_projects/cmake_project/projects/game_1/CMakeFiles/edit_cache.dir
