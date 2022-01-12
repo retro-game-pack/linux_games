@@ -6,21 +6,25 @@
 
 block_data background[HEIGHT_TETRIS][WIDTH_TETRIS]; 	// 0,0 is main(left top)
 							// [y][x]
+block_data current_block[4][4];
 int cur_x=0;
 int cur_y=0;
 
 
-void change_line(void)
+
+void change_line(void) // terminal func
 {
 printf("%s",CMD_FORE_DEFAULT);
 printf("%s",CMD_BACK_DEFAULT);
 printf("\n");
 }
 
-void set_color(char *data)
+void set_color(char *data) //terminal func
 {
 	printf("%s", data);
 }
+
+
 
 void set_data_to_color(block_data data)
 {
@@ -65,6 +69,43 @@ print_block(int x, int y) 저장된 블록모양 출력
 현재블록 돌리기(돌리기전에 튀어나감 체크)
 */
 
+void turn_right_block(char data[4][4])
+{
+	char temp[4][4];
+	for(int y=0;y<4;y++)
+	{
+		for(int x=0;x<4;x++)
+		{
+			temp[y][x]=data[y][x];
+		}
+	}
+	for(int y=0;y<4;y++)
+        {
+                for(int x=0;x<4;x++)
+                {
+                        data[y][x]=temp[3-x][y];
+		}
+        }
+}
+
+void turn_left_block(char data[4][4])
+{
+	char temp[4][4];
+        for(int y=0;y<4;y++)
+        {
+                for(int x=0;x<4;x++)
+                {
+                        temp[y][x]=data[y][x];
+                }
+        }
+        for(int y=0;y<4;y++)
+        {
+                for(int x=0;x<4;x++)
+                {
+                        data[y][x]=temp[x][3-y];
+                }
+        }
+}
 
 void show_tetris_debug(void)
 {
@@ -96,10 +137,19 @@ void show_tetris_screan(void)
 void init_tetris(void)
 {
 	cur_x=3;
+
+	for(int y=0;y<4;y++)
+        {
+                for(int x=0;x<4;x++)
+                        current_block[y][x]=block_shapes[5][y][x];
+        }
+
+	turn_left_block(current_block);
+
 	for(int y=0;y<4;y++)
 	{
 		for(int x=0;x<4;x++)
-			background[3+y][3+x]=block_shapes[0][y][x];
+			background[3+y][3+x]=current_block[y][x];
 	}
 background[19][0]=1;
 background[19][1]=2;
