@@ -1,12 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include "tetris.h"
 
+
+#define double_for(y, x, n) for(int y=0;y<n;y++) for(int x=0;x<n;x++)
+
+
 block_data background[HEIGHT_TETRIS][WIDTH_TETRIS]; 	// 0,0 is main(left top)
 							// [y][x]
 block_data current_block[4][4];
+int current_block_type;
+
 int cur_x=0;
 int cur_y=0;
 
@@ -51,6 +58,8 @@ static inline void print_one_block(void)
 	printf("%s", ONE_BLOCK);
 }
 
+
+
 //1.현재 블럭 가져오기
 //2,1.블럭을 좌표기준으로 출력
 //3.내려가는 시간사이에 움직임 받기
@@ -63,59 +72,89 @@ static inline void print_one_block(void)
 
 //만들 함수목록--
 /*
-print_block(int x, int y) 저장된 블록모양 출력
-아랫블럭 체크
+아랫블럭 체크 o
+게임오버 체크 o
 옆으로 튀어나가는것 체크
-현재블록 돌리기(돌리기전에 튀어나감 체크)
+현재블록 돌리기 o
+(돌리기전에 튀어나감 체크)
+블록 데이터 백그라운드에 쓰기
 */
+
+
+void delete_block(void)
+{
+	double_for(y,x,4)
+	{
+		if(current_block[y][x] != NONE) background[cur_y+y][cur_x+x]=NONE;
+	}
+}
+
+void write_block(void)
+{
+	double_for(y,x,4)
+        {
+                if(current_block[y][x] != NONE) background[cur_y+y][cur_x+x]=current_block_type;
+        }
+}
+
+bool check_over_block(void)
+{
+	double_for(y,x,4)
+	{
+		if(background[cur_y+y][cur_x+x] != NONE)
+		{
+			if(current_block[y][x] == current_block_type)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+bool check_under_block(void)
+{
+	double_for(y,x,4)
+	{
+		if(background[cur_y+y+1][cur_x+x] != NONE) // 아래 블록이 비어있지않고,
+		{
+			if(current_block[y][x] == current_block_type &&
+				current_block[y+1][x] == NONE) // 지금 블록이 블록모양에 존재하고 그 아래에는 없는경우
+				return true;
+		}
+	}
+
+	return false;
+}
+
+void check_line()
+{
+
+}
 
 void turn_right_block(char data[4][4])
 {
 	char temp[4][4];
-	for(int y=0;y<4;y++)
-	{
-		for(int x=0;x<4;x++)
-		{
-			temp[y][x]=data[y][x];
-		}
-	}
-	for(int y=0;y<4;y++)
-        {
-                for(int x=0;x<4;x++)
-                {
-                        data[y][x]=temp[3-x][y];
-		}
-        }
+
+	double_for(y,x,4)	temp[y][x]=data[3-x][y];
+	double_for(y,x,4)	data[y][x]=temp[y][x];
 }
 
 void turn_left_block(char data[4][4])
 {
 	char temp[4][4];
-        for(int y=0;y<4;y++)
-        {
-                for(int x=0;x<4;x++)
-                {
-                        temp[y][x]=data[y][x];
-                }
-        }
-        for(int y=0;y<4;y++)
-        {
-                for(int x=0;x<4;x++)
-                {
-                        data[y][x]=temp[x][3-y];
-                }
-        }
+
+	double_for(y,x,4)	temp[y][x]=data[x][3-y];
+	double_for(y,x,4)	data[y][x]=temp[y][x];
 }
 
 void show_tetris_debug(void)
 {
+	printf("\n");
 	for(int y=0; y<HEIGHT_TETRIS; y++)
         {
                 for(int x=0; x<WIDTH_TETRIS; x++)
                 {
 			printf("%d ",background[y][x]);
-                        //set_data_to_color(background[y][x]);
-                        //print_one_block();
                 }
                 change_line();
         }
@@ -123,6 +162,7 @@ void show_tetris_debug(void)
 
 void show_tetris_screan(void)
 {
+	system("clear");
 	for(int y=0; y<HEIGHT_TETRIS; y++)
 	{
 		for(int x=0; x<WIDTH_TETRIS; x++)
@@ -137,20 +177,15 @@ void show_tetris_screan(void)
 void init_tetris(void)
 {
 	cur_x=3;
+	current_block_type=T_BLOCK;
 
-	for(int y=0;y<4;y++)
-        {
-                for(int x=0;x<4;x++)
-                        current_block[y][x]=block_shapes[5][y][x];
-        }
-
-	turn_left_block(current_block);
-
-	for(int y=0;y<4;y++)
+	double_for(y, x, 4)
 	{
-		for(int x=0;x<4;x++)
-			background[3+y][3+x]=current_block[y][x];
+		current_block[y][x]=block_shapes[current_block_type-1][y][x];
 	}
+
+//background[4][5]=1;
+
 background[19][0]=1;
 background[19][1]=2;
 background[19][2]=3;
@@ -165,9 +200,28 @@ background[19][9]=3;
 
 void loop_tetris(void)
 {
+	time_t start_time=time(NULL);
+	time_t end_time=time(NULL);
 
 	while(1)
 	{
+		if(check_under_block() == true)
+		{
+
+		break;
+		}
+
+		start_time=time(NULL);
+		if(end_time-start_time != 0)
+		{
+			end_time=start_time;
+			delete_block();
+			cur_y+=1;
+			write_block();
+
+			show_tetris_screan();
+			show_tetris_debug();
+		}
 	}
 }
 
@@ -176,10 +230,36 @@ int main(void)
 {
 init_tetris();
 
-show_tetris_screan();
 
-printf("\n");
+
+//printf("%d\n", check_under_block());
+//printf("%d\n", check_over_block());
+
+write_block();
+
+loop_tetris();
+
+/*
+write_block();
+
+show_tetris_screan();
 show_tetris_debug();
+sleep(1);
+
+delete_block(); // one rotate
+turn_right_block(current_block);
+write_block();
+
+show_tetris_screan();
+show_tetris_debug();
+sleep(1);
+
+
+delete_block();
+show_tetris_screan();
+show_tetris_debug();
+sleep(1);
+*/
 
 return 0;
 }
