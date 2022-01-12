@@ -126,9 +126,35 @@ bool check_under_block(void)
 	return false;
 }
 
-void check_line()
+int check_line(void)
 {
+	for(int y=0;y<HEIGHT_TETRIS;y++)
+	{
+		int line=0;
+		for(int x=0;x<WIDTH_TETRIS;x++)
+		{
+			if(background[y][x] != NONE) line++;
+		}
+		if(line==10)	return y;
+		else line=0;
+	}
 
+	return -1;
+}
+
+void delete_line(int line)
+{
+	for(int i=0;i<WIDTH_TETRIS;i++) background[line][i]=NONE;
+
+	for(int y=line;y>0;y--)
+	{
+		for(int x=0;x<WIDTH_TETRIS;x++)
+		{
+			background[y][x]=background[y-1][x];
+		}
+	}
+
+	for(int i=0;i<WIDTH_TETRIS;i++) background[0][i]=NONE;
 }
 
 void turn_right_block(char data[4][4])
@@ -186,6 +212,19 @@ void init_tetris(void)
 
 //background[4][5]=1;
 
+/*
+background[0][0]=1;
+background[0][1]=2;
+background[0][2]=3;
+background[0][3]=4;
+background[0][4]=5;
+background[0][5]=6;
+background[0][6]=7;
+background[0][7]=1;
+background[0][8]=2;
+background[0][9]=3;
+*/
+
 background[19][0]=1;
 background[19][1]=2;
 background[19][2]=3;
@@ -237,7 +276,14 @@ init_tetris();
 
 write_block();
 
-loop_tetris();
+show_tetris_debug();
+printf("%d\n", check_line());
+delete_line(check_line());
+
+show_tetris_debug();
+
+
+//loop_tetris();
 
 /*
 write_block();
