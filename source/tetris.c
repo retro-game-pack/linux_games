@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
+#include <termios.h>
 #include "tetris.h"
 
 
@@ -18,6 +19,29 @@ int cur_x=0;
 int cur_y=0;
 
 
+int getkey() // terminal func
+{
+	int character;
+	struct termios orig_term_attr;
+	struct termios new_term_attr;
+
+	/* set the terminal to raw mode */
+	tcgetattr(fileno(stdin), &orig_term_attr);
+	memcpy(&new_term_attr, &orig_term_attr, sizeof(struct termios));
+	new_term_attr.c_lflag &= ~(ECHO|ICANON);
+	new_term_attr.c_cc[VTIME] = 0;
+	new_term_attr.c_cc[VMIN] = 0;
+	tcsetattr(fileno(stdin), TCSANOW, &new_term_attr);
+
+	/* read a character from the stdin stream without blocking */
+	/*   returns EOF (-1) if no character is available */
+	character = fgetc(stdin);
+
+	/* restore the original terminal attributes */
+	tcsetattr(fileno(stdin), TCSANOW, &orig_term_attr);
+
+	return character;
+}
 
 void change_line(void) // terminal func
 {
@@ -60,15 +84,15 @@ static inline void print_one_block(void)
 
 
 
-//1.현재 블럭 가져오기
-//2,1.블럭을 좌표기준으로 출력
-//3.내려가는 시간사이에 움직임 받기
-//3_1.움직임을 받으면 현재 블럭을 지우기
-//3_2.좌표를 이동 전 검산 후 이동
-//3_3.이동된 좌표를 기반으로 블록 출력
-//4.시간이 되면 블럭 지우기
-//4_1.좌표를 내리기 및 검사
-//4_2.아래에 블럭이 있다면 블록 고정 및 좌표 초기화
+//1.현재 블럭 가져오기(rand)
+//2,1.블럭을 좌표기준으로 출력 O
+//3.내려가는 시간사이에 움직임 받기 X
+//3_1.움직임을 받으면 현재 블럭을 지우기 X
+//3_2.좌표를 이동 전 검산 후 이동 X
+//3_3.이동된 좌표를 기반으로 블록 출력 X
+//4.시간이 되면 블럭 지우기 O
+//4_1.좌표를 내리기 및 검사 O
+//4_2.아래에 블럭이 있다면 블록 고정 및 좌표 초기화 O
 
 //만들 함수목록--
 /*
@@ -77,7 +101,6 @@ static inline void print_one_block(void)
 옆으로 튀어나가는것 체크
 현재블록 돌리기 o
 (돌리기전에 튀어나감 체크)
-블록 데이터 백그라운드에 쓰기
 */
 
 
@@ -155,6 +178,18 @@ void delete_line(int line)
 	}
 
 	for(int i=0;i<WIDTH_TETRIS;i++) background[0][i]=NONE;
+}
+
+void refresh_line(void)
+{
+	int line=0;
+	while(1)
+	{
+		line=check_line();
+		if(line == -1) break;
+
+		delete_line(line);
+	}
 }
 
 void turn_right_block(char data[4][4])
@@ -246,14 +281,22 @@ void loop_tetris(void)
 	{
 		if(check_under_block() == true)
 		{
-
-		break;
+			refresh_line();
+			cur_x=3;
+			cur_y=0;
+			if(check_over_block() == true)
+			{
+				printf("\n\ngame over!\n\n");
+				break;
+			}
+			write_block();
 		}
 
 		start_time=time(NULL);
 		if(end_time-start_time != 0)
 		{
 			end_time=start_time;
+
 			delete_block();
 			cur_y+=1;
 			write_block();
@@ -261,6 +304,11 @@ void loop_tetris(void)
 			show_tetris_screan();
 			show_tetris_debug();
 		}
+	char key=getkey();
+	if(key==0xffffffff)	continue;
+	else if(key==27) break;
+	printf("\n\ninpit:%c\n",key);
+
 	}
 }
 
@@ -269,21 +317,13 @@ int main(void)
 {
 init_tetris();
 
-
+write_block();
 
 //printf("%d\n", check_under_block());
 //printf("%d\n", check_over_block());
+//printf("%d\n", check_line());
 
-write_block();
-
-show_tetris_debug();
-printf("%d\n", check_line());
-delete_line(check_line());
-
-show_tetris_debug();
-
-
-//loop_tetris();
+loop_tetris();
 
 /*
 write_block();
