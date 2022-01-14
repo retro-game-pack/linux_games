@@ -60,14 +60,14 @@ void set_color(char *data) //terminal func
 void set_data_to_color(block_data data)
 {
 	if(data == NONE) set_color(CMD_BACK_BLACK);
-	else if(data == I_BLOCK) printf("%s", CMD_BACK_LIGHT_BLUE);
-	else if(data == J_BLOCK) printf("%s", CMD_BACK_BLUE);
-	else if(data == L_BLOCK) printf("%s", CMD_BACK_LIGHT_GRAY);
-	else if(data == O_BLOCK) printf("%s", CMD_BACK_LIGHT_YELLOW);
-	else if(data == S_BLOCK) printf("%s", CMD_BACK_GREEN);
-	else if(data == T_BLOCK) printf("%s", CMD_BACK_MAGENTA);
-	else if(data == Z_BLOCK) printf("%s", CMD_BACK_LIGHT_RED);
-
+	else if(data == I_BLOCK) set_color(CMD_BACK_LIGHT_BLUE);
+	else if(data == J_BLOCK) set_color(CMD_BACK_BLUE);
+	else if(data == L_BLOCK) set_color(CMD_BACK_LIGHT_GRAY);
+	else if(data == O_BLOCK) set_color(CMD_BACK_LIGHT_YELLOW);
+	else if(data == S_BLOCK) set_color(CMD_BACK_GREEN);
+	else if(data == T_BLOCK) set_color(CMD_BACK_MAGENTA);
+	else if(data == Z_BLOCK) set_color(CMD_BACK_LIGHT_RED);
+	else if(data == WALL) set_color(CMD_BACK_CYAN);
 }
 
 /*
@@ -87,8 +87,8 @@ static inline void print_one_block(void)
 //1.현재 블럭 가져오기(rand)
 //2,1.블럭을 좌표기준으로 출력 O
 //3.내려가는 시간사이에 움직임 받기 X
-//3_1.움직임을 받으면 현재 블럭을 지우기 X
-//3_2.좌표를 이동 전 검산 후 이동 X
+//3_1.움직임을 받으면 현재 블럭을 지우기 O
+//3_2.좌표를 이동 전 검산 후 이동 X(좌표 기반출력이라 벽에 비벼진다)
 //3_3.이동된 좌표를 기반으로 블록 출력 X
 //4.시간이 되면 블럭 지우기 O
 //4_1.좌표를 내리기 및 검사 O
@@ -224,15 +224,36 @@ void show_tetris_debug(void)
 void show_tetris_screan(void)
 {
 	system("clear");
+
+	for(int i=0;i<12;i++)
+	{
+		set_data_to_color(WALL);
+                print_one_block();
+	}
+	change_line();
+
 	for(int y=0; y<HEIGHT_TETRIS; y++)
 	{
+		set_data_to_color(WALL);
+		print_one_block();
+
 		for(int x=0; x<WIDTH_TETRIS; x++)
 		{
 			set_data_to_color(background[y][x]);
 			print_one_block();
 		}
+		set_data_to_color(WALL);
+		print_one_block();
+
 		change_line();
 	}
+
+	for(int i=0;i<12;i++)
+        {
+                set_data_to_color(WALL);
+                print_one_block();
+        }
+	change_line();
 }
 
 void init_tetris(void)
@@ -306,8 +327,66 @@ void loop_tetris(void)
 		}
 	char key=getkey();
 	if(key==0xffffffff)	continue;
-	else if(key==27) break;
-	printf("\n\ninpit:%c\n",key);
+	else if(key==0x1b) break;
+	else if(key==0x64) // right
+	{
+		if(cur_x != 5)
+		{
+			delete_block();
+			cur_x++;
+
+			if(check_over_block() == true)
+                        {
+                                cur_x--;
+                                write_block();
+                                continue;
+                        }
+
+			write_block();
+
+			show_tetris_screan();
+                        show_tetris_debug();
+		}
+	}
+	else if(key==0x61) // left
+	{
+		if(cur_x != 0)
+		{
+			delete_block();
+			cur_x--;
+
+			if(check_over_block() == true)
+			{
+				cur_x++;
+				write_block();
+				continue;
+			}
+
+			write_block();
+
+			show_tetris_screan();
+			show_tetris_debug();
+		}
+	}
+	else if(key==0x2C)
+	{
+		delete_block();
+		turn_left_block(current_block);
+
+		if(check_over_block() == true)
+		{
+			turn_right_block(current_block);
+			write_block();
+			continue;
+		}
+
+		write_block();
+
+		show_tetris_screan();
+		show_tetris_debug();
+	}
+
+	printf("\n\ninpit:%x\n",key);
 
 	}
 }

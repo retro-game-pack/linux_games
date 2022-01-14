@@ -19,7 +19,18 @@ L_BLOCK,
 O_BLOCK,
 S_BLOCK,
 T_BLOCK,
-Z_BLOCK
+Z_BLOCK,
+WALL
+};
+
+enum key_data
+{
+KEY_UP,
+KEY_DOWN,
+KEY_RIGHT,
+KEY_LEFT,
+KEY_R_ROTATE,
+KEY_L_ROTATE
 };
 
 typedef char block_data;
